@@ -24,7 +24,7 @@ This installs:
 Run the script from the terminal:
 
 ```bash
-./radar_chart.py --csv data.csv [OPTIONS]
+./prc.py --csv data.csv [OPTIONS]
 ```
 
 ### Required argument
@@ -81,20 +81,6 @@ Goldminer, 1, 0, 0.1, 1000
 - It prevents clutter near the center of the radar.  
 - The plot legend shows each configuration name.  
 - Works on Linux, macOS, and Windows (with Python 3.8+).
-
----
-
-## 🧰 Troubleshooting
-
-If you get a permission error:
-```bash
-chmod +x radar_chart.py
-```
-
-If the script fails with a missing module:
-```bash
-pip3 install -r <(echo pandas numpy matplotlib)
-```
 
 ---
 

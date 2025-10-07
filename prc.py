@@ -2,8 +2,6 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
-
 import argparse
 
 
@@ -250,9 +248,9 @@ def configure_matplotlib_backend():
     )
 
     if headless and os.name != "nt":
-        matplotlib.use("Agg")
+        matplotlib.use("TkAgg")
         print(
-            "💡 Headless mode detected — using 'Agg' backend (non-interactive)."
+            "💡 Headless mode detected — using 'TkAgg' backend (non-interactive)."
         )
 
 
