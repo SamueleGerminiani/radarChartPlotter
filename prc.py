@@ -55,6 +55,11 @@ def main():
         )
 
     df.columns = df.columns.str.strip()
+    #debug
+    #print("DataFrame columns:", df.columns.tolist())
+    #print("DataFrame columns:", df.columns.tolist())
+    #for col in df.columns:
+    #    print(f"Column '{col}' sample data:", df[col].head().tolist())
 
     if df.columns[0].lower() != "name":
         raise ValueError(
@@ -221,19 +226,24 @@ def save_chart(fig, output_path):
 
 
 def configure_matplotlib_backend():
+    """
+    Configure Matplotlib backend automatically depending on the environment.
+    Uses 'Agg' in headless or non-interactive contexts, 'TkAgg' otherwise.
+    """
     import os
     import matplotlib
 
+    # Detect headless / non-interactive mode
     headless = (
-        not os.environ.get("DISPLAY")
-        or os.environ.get("SSH_CONNECTION")
-        or os.environ.get("SSH_TTY")
+        not os.environ.get("DISPLAY")      # no display (typical for SSH/system calls)
+        or os.environ.get("SSH_CONNECTION") # running over SSH
+        or os.environ.get("SSH_TTY")        # SSH TTY session
+        or not os.isatty(0)                 # launched non-interactively (e.g., from system())
     )
+
     if headless and os.name != "nt":
-        matplotlib.use("TkAgg")
-        print(
-            "💡 Headless mode detected — using 'TkAgg' backend (non-interactive)."
-        )
+        matplotlib.use("Agg")
+        print("💡 Headless mode detected — using 'Agg' backend (non-interactive).")
 
 
 if __name__ == "__main__":
