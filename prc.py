@@ -2,12 +2,15 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib
-matplotlib.use("TkAgg")
+
+
 import argparse
 
 
 def main():
+    # === Configure Matplotlib backend ===
+    configure_matplotlib_backend()
+
     parser = argparse.ArgumentParser(
         description="Plot a radar (spider) chart for each configuration in a CSV file."
     )
@@ -28,10 +31,10 @@ def main():
         default="Radar Chart of Configurations",
     )
     parser.add_argument(
-    "--dump-to",
-    help="Path to save the chart image (e.g., 'chart.png' or 'out.pdf'). "
-         "If omitted, the chart is shown interactively.",
-    default=None,
+        "--dump-to",
+        help="Path to save the chart image (e.g., 'chart.png' or 'out.pdf'). "
+        "If omitted, the chart is shown interactively.",
+        default=None,
     )
 
     args = parser.parse_args()
@@ -193,7 +196,8 @@ def main():
     if args.dump_to:
         save_chart(fig, args.dump_to)
     else:
-         plt.show()
+        plt.show()
+
 
 def save_chart(fig, output_path):
     """
@@ -229,6 +233,27 @@ def save_chart(fig, output_path):
         transparent=True,
     )
     print(f"✅ Chart saved successfully to: {output_path}")
+
+
+def configure_matplotlib_backend():
+    """
+    Configure Matplotlib backend automatically depending on the environment.
+    Uses 'Agg' in headless or SSH environments, 'TkAgg' otherwise.
+    """
+    import os
+    import matplotlib
+
+    headless = (
+        not os.environ.get("DISPLAY")
+        or os.environ.get("SSH_CONNECTION")
+        or os.environ.get("SSH_TTY")
+    )
+
+    if headless and os.name != "nt":
+        matplotlib.use("Agg")
+        print(
+            "💡 Headless mode detected — using 'Agg' backend (non-interactive)."
+        )
 
 
 if __name__ == "__main__":
