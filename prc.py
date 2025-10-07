@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse
+from io import StringIO
 
 
 def main():
@@ -10,9 +11,14 @@ def main():
     configure_matplotlib_backend()
 
     parser = argparse.ArgumentParser(
-        description="Plot a radar (spider) chart for each configuration in a CSV file."
+        description="Plot a radar (spider) chart for each configuration in a CSV file or inline string."
     )
-    parser.add_argument("--csv", required=True, help="Path to the CSV file")
+    parser.add_argument("--csv", help="Path to the CSV file")
+    parser.add_argument(
+        "--string",
+        help="CSV content provided directly as a string (overrides --csv)",
+        default=None,
+    )
     parser.add_argument(
         "--invert",
         help="Comma-separated list of variables to invert (e.g., 'time,overlap')",
@@ -38,7 +44,16 @@ def main():
     args = parser.parse_args()
 
     # === Load data ===
-    df = pd.read_csv(args.csv, skipinitialspace=True)
+    if args.string:
+        print("📄 Using CSV content from --string argument.")
+        df = pd.read_csv(StringIO(args.string.strip()), skipinitialspace=True)
+    elif args.csv:
+        df = pd.read_csv(args.csv, skipinitialspace=True)
+    else:
+        raise ValueError(
+            "You must provide either --csv <file> or --string <csv_content>"
+        )
+
     df.columns = df.columns.str.strip()
 
     if df.columns[0].lower() != "name":
@@ -140,27 +155,15 @@ def main():
     ax.set_xticklabels(categories, fontsize=15)
     ax.xaxis.set_tick_params(pad=30)
 
-    # Bold inverted variable labels in red
-    for label, col in zip(ax.get_xticklabels(), df_numeric.columns):
-        # if col in inverted_vars:
-        #    label.set_fontweight("bold")
-        #    label.set_color("darkred")
-
-        ax.set_yticks([0.25, 0.5, 0.75, 1.0])
-        ax.set_yticklabels(
-            ["0.25", "0.5", "0.75", "1.0"], color="grey", size=8
-        )
+    ax.set_yticks([0.25, 0.5, 0.75, 1.0])
+    ax.set_yticklabels(["0.25", "0.5", "0.75", "1.0"], color="grey", size=8)
 
     ax.set_yticklabels([])
     ax.set_yticks([])  # remove tick marks
 
     # === Add real numeric value labels for relative *and inverted* variables ===
-    tick_levels = np.linspace(0, 1, 5)  # include 0
+    tick_levels = np.linspace(0, 1, 5)
     for angle, col in zip(angles, df_numeric.columns):
-        # check if this this the first axis label
-        # if angle == 0:
-        #    continue  # skip first axis to avoid clutter
-
         min_val, max_val = min_vals[col], max_vals[col]
         if col in inverted_vars:
             real_vals = np.linspace(max_val, min_val, len(tick_levels))
@@ -198,31 +201,15 @@ def main():
 
 
 def save_chart(fig, output_path):
-    """
-    Save the radar chart to file with high quality.
-
-    Parameters
-    ----------
-    fig : matplotlib.figure.Figure
-        The Matplotlib figure to save.
-    output_path : str
-        File path where the image will be saved.
-    """
     import os
 
-    # Ensure directory exists
     os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
-
-    # Choose format automatically based on extension
     ext = os.path.splitext(output_path)[1].lower()
     valid_exts = [".png", ".pdf", ".svg", ".jpg", ".jpeg"]
     if ext not in valid_exts:
         raise ValueError(
-            f"Unsupported file extension '{ext}'. "
-            f"Use one of: {', '.join(valid_exts)}"
+            f"Unsupported file extension '{ext}'. Use one of: {', '.join(valid_exts)}"
         )
-
-    # Save with high DPI and tight bounding box
     fig.savefig(
         output_path,
         dpi=300,
@@ -234,10 +221,6 @@ def save_chart(fig, output_path):
 
 
 def configure_matplotlib_backend():
-    """
-    Configure Matplotlib backend automatically depending on the environment.
-    Uses 'Agg' in headless or SSH environments, 'TkAgg' otherwise.
-    """
     import os
     import matplotlib
 
@@ -246,7 +229,6 @@ def configure_matplotlib_backend():
         or os.environ.get("SSH_CONNECTION")
         or os.environ.get("SSH_TTY")
     )
-
     if headless and os.name != "nt":
         matplotlib.use("TkAgg")
         print(
