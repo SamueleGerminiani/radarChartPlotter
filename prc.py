@@ -45,7 +45,8 @@ def main():
 
     # === Load data ===
     if args.string:
-        print("📄 Using CSV content from --string argument.")
+        #debug
+        #print("📄 Using CSV content from --string argument.")
         df = pd.read_csv(StringIO(args.string.strip()), skipinitialspace=True)
     elif args.csv:
         df = pd.read_csv(args.csv, skipinitialspace=True)
@@ -109,7 +110,8 @@ def main():
             col_name = df_columns_lower[var_lower]
             df_scaled[col_name] = 1 - df_scaled[col_name]
             inverted_vars.add(col_name)
-            print(f"Inverted variable: {col_name}")
+            #debug
+            #print(f"Inverted variable: {col_name}")
         else:
             print(
                 f"Warning: '{var}' not found among numeric columns, skipping."
