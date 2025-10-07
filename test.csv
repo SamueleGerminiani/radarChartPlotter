@@ -1,0 +1,6 @@
+name, MS, RS, FC, time
+HARM, 0.1, 0.5, 1, 50
+Texada, 0.5, 0.6, 0.8, 100
+Goldminer, 1, 0,0.1, 1000
+samples2ltl, 0.4, 0.6, 1, 300
+
