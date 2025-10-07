@@ -2,6 +2,8 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use("TkAgg")
 import argparse
 
 
@@ -25,6 +27,13 @@ def main():
         help="Title for the radar chart (default: 'Radar Chart of Configurations')",
         default="Radar Chart of Configurations",
     )
+    parser.add_argument(
+    "--dump-to",
+    help="Path to save the chart image (e.g., 'chart.png' or 'out.pdf'). "
+         "If omitted, the chart is shown interactively.",
+    default=None,
+    )
+
     args = parser.parse_args()
 
     # === Load data ===
@@ -180,7 +189,46 @@ def main():
     ax.set_title(args.title, pad=20, fontweight="bold", fontsize=17)
     ax.legend(loc="upper right", bbox_to_anchor=(1.1, 1.1))
     plt.tight_layout()
-    plt.show()
+
+    if args.dump_to:
+        save_chart(fig, args.dump_to)
+    else:
+         plt.show()
+
+def save_chart(fig, output_path):
+    """
+    Save the radar chart to file with high quality.
+
+    Parameters
+    ----------
+    fig : matplotlib.figure.Figure
+        The Matplotlib figure to save.
+    output_path : str
+        File path where the image will be saved.
+    """
+    import os
+
+    # Ensure directory exists
+    os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
+
+    # Choose format automatically based on extension
+    ext = os.path.splitext(output_path)[1].lower()
+    valid_exts = [".png", ".pdf", ".svg", ".jpg", ".jpeg"]
+    if ext not in valid_exts:
+        raise ValueError(
+            f"Unsupported file extension '{ext}'. "
+            f"Use one of: {', '.join(valid_exts)}"
+        )
+
+    # Save with high DPI and tight bounding box
+    fig.savefig(
+        output_path,
+        dpi=300,
+        bbox_inches="tight",
+        pad_inches=0.1,
+        transparent=True,
+    )
+    print(f"✅ Chart saved successfully to: {output_path}")
 
 
 if __name__ == "__main__":
