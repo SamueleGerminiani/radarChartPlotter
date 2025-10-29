@@ -222,7 +222,8 @@ def save_chart(fig, output_path):
         dpi=300,
         bbox_inches="tight",
         pad_inches=0.1,
-        transparent=True,
+        transparent=False,
+        facecolor="white",
     )
     print(f"✅ Chart saved successfully to: {output_path}")
 
