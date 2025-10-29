@@ -188,7 +188,7 @@ def main():
                 r_norm + 0.02,
                 text,
                 color="gray",
-                fontsize=7,
+                fontsize=15,
                 ha="center",
                 va="center",
             )
@@ -198,7 +198,7 @@ def main():
     plt.ylim(0, 1)
 
     ax.set_title(args.title, pad=20, fontweight="bold", fontsize=17)
-    ax.legend(loc="upper right", bbox_to_anchor=(1.1, 1.1))
+    ax.legend(loc="upper right", bbox_to_anchor=(1.1, 1.1), fontsize=17)
     plt.tight_layout()
 
     if args.dump_to:
