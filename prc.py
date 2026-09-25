@@ -30,6 +30,11 @@ def main():
         default="",
     )
     parser.add_argument(
+        "--int",
+        help="Comma-separated list of variables to format as integers on the axes.",
+        default="",
+    )
+    parser.add_argument(
         "--title",
         help="Title for the radar chart (default: 'Radar Chart of Configurations')",
         default="Radar Chart of Configurations",
@@ -45,8 +50,6 @@ def main():
 
     # === Load data ===
     if args.string:
-        #debug
-        #print("📄 Using CSV content from --string argument.")
         df = pd.read_csv(StringIO(args.string.strip()), skipinitialspace=True)
     elif args.csv:
         df = pd.read_csv(args.csv, skipinitialspace=True)
@@ -56,11 +59,6 @@ def main():
         )
 
     df.columns = df.columns.str.strip()
-    #debug
-    #print("DataFrame columns:", df.columns.tolist())
-    #print("DataFrame columns:", df.columns.tolist())
-    #for col in df.columns:
-    #    print(f"Column '{col}' sample data:", df[col].head().tolist())
 
     if df.columns[0].lower() != "name":
         raise ValueError(
@@ -76,8 +74,9 @@ def main():
     # === Parse CLI options ===
     invert_list = [v.strip() for v in args.invert.split(",") if v.strip()]
     relative_list = [v.strip() for v in args.relative.split(",") if v.strip()]
+    int_list = [v.strip() for v in args.int.split(",") if v.strip()]
 
-    for var in invert_list + relative_list:
+    for var in invert_list + relative_list + int_list:
         if var not in df_numeric.columns:
             raise ValueError(
                 f"Variable '{var}' not found in CSV numeric columns."
@@ -110,8 +109,6 @@ def main():
             col_name = df_columns_lower[var_lower]
             df_scaled[col_name] = 1 - df_scaled[col_name]
             inverted_vars.add(col_name)
-            #debug
-            #print(f"Inverted variable: {col_name}")
         else:
             print(
                 f"Warning: '{var}' not found among numeric columns, skipping."
@@ -124,15 +121,22 @@ def main():
             lo, hi = df_numeric[col].min(), df_numeric[col].max()
         else:
             lo, hi = 0, 1
+
         if col in inverted_vars:
             lo, hi = hi, lo
-            if col in relative_list:
-                label = f"{col} [{lo:.2f}, {hi:.2f}]\n (inv, rel)"
-            else:
-                label = f"{col} [{lo:.2f}, {hi:.2f}] (inv)"
+            suffix = "\n (inv, rel)" if col in relative_list else " (inv)"
         else:
-            label = f"{col} [{lo:.2f}, {hi:.2f}]"
-        categories.append(label.replace(".00", ""))
+            suffix = ""
+
+        # Apply formatting based on whether the column is in --int
+        if col in int_list:
+            # Force conversion to int for limits
+            label = f"{col} [{int(round(lo))}, {int(round(hi))}]{suffix}"
+        else:
+            label = f"{col} [{lo:.2f}, {hi:.2f}]{suffix}"
+            label = label.replace(".00", "")
+
+        categories.append(label)
 
     # === Radar chart geometry ===
     N = len(categories)
@@ -150,12 +154,12 @@ def main():
         ax.plot(
             closed_angles,
             values,
-            linewidth=1.5,
+            linewidth=4,
             marker=".",
             label=name,
             alpha=0.8,
         )
-        ax.fill(closed_angles, values, alpha=0.05)
+        # ax.fill(closed_angles, values, alpha=0.05)
 
     # === Cosmetics ===
     ax.set_xticks(angles)
@@ -178,17 +182,19 @@ def main():
             real_vals = np.linspace(min_val, max_val, len(tick_levels))
 
         for r_norm, real in zip(tick_levels, real_vals):
-            text = (
-                ""
-                if np.isclose(r_norm, 0.0)
-                else f"{real:.2f}".rstrip("0").rstrip(".")
-            )
+            if np.isclose(r_norm, 0.0):
+                text = ""
+            elif col in int_list:
+                text = str(int(round(real)))
+            else:
+                text = f"{real:.2f}".rstrip("0").rstrip(".")
+
             ax.text(
                 angle,
                 r_norm + 0.02,
                 text,
-                color="gray",
-                fontsize=15,
+                color="black",
+                fontsize=10,
                 ha="center",
                 va="center",
             )
@@ -238,15 +244,19 @@ def configure_matplotlib_backend():
 
     # Detect headless / non-interactive mode
     headless = (
-        not os.environ.get("DISPLAY")      # no display (typical for SSH/system calls)
-        or os.environ.get("SSH_CONNECTION") # running over SSH
-        or os.environ.get("SSH_TTY")        # SSH TTY session
-        or not os.isatty(0)                 # launched non-interactively (e.g., from system())
+        not os.environ.get(
+            "DISPLAY"
+        )  # no display (typical for SSH/system calls)
+        or os.environ.get("SSH_CONNECTION")  # running over SSH
+        or os.environ.get("SSH_TTY")  # SSH TTY session
+        or not os.isatty(0)  # launched non-interactively (e.g., from system())
     )
 
     if headless and os.name != "nt":
         matplotlib.use("Agg")
-        print("💡 Headless mode detected — using 'Agg' backend (non-interactive).")
+        print(
+            "💡 Headless mode detected — using 'Agg' backend (non-interactive)."
+        )
 
 
 if __name__ == "__main__":
