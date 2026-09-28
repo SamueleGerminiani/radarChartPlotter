@@ -163,7 +163,7 @@ def main():
 
     # === Cosmetics ===
     ax.set_xticks(angles)
-    ax.set_xticklabels(categories, fontsize=15)
+    ax.set_xticklabels(categories, fontsize=12)
     ax.xaxis.set_tick_params(pad=30)
 
     ax.set_yticks([0.25, 0.5, 0.75, 1.0])
@@ -194,7 +194,7 @@ def main():
                 r_norm + 0.02,
                 text,
                 color="black",
-                fontsize=10,
+                fontsize=9,
                 ha="center",
                 va="center",
             )
@@ -204,7 +204,7 @@ def main():
     plt.ylim(0, 1)
 
     ax.set_title(args.title, pad=20, fontweight="bold", fontsize=17)
-    ax.legend(loc="upper right", bbox_to_anchor=(1.1, 1.1), fontsize=17)
+    ax.legend(loc="upper right", bbox_to_anchor=(1.1, 1.1), fontsize=15)
     plt.tight_layout()
 
     if args.dump_to:
